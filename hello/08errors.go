@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"go-get-started/other"
 )
 
 // 如果调用方需要知道错误类型，并处理，必须声明顶级错误变量
@@ -12,48 +13,33 @@ import (
 // panic(err.Error()) painc会退出程序
 func main() {
 
-	err := Open()
+	err := other.Open()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	err = OpenFile("one_file")
+	err = other.OpenFile("one_file")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	err = Create()
-	if errors.Is(err, CreateError) {
+	err = other.Create()
+	if errors.Is(err, other.CreateError) {
 		fmt.Println(err)
 	}
-	err = CreateFile("tow_file")
-	var tarErr *CreateFileError
-	if errors.As(err, &tarErr) {
-		fmt.Println(err)
+	cerr := other.CreateFile("tow_file")
+	fileError := other.New("")
+	fmt.Println(cerr == nil)
+	if errors.As(cerr, &fileError) {
+		fmt.Println(cerr)
 	}
+
+	var t1 T = "123"
+	var t2 T = "456"
+	t1.hello(t2)
+
 }
 
-func Open() error {
-	return errors.New("system error")
-}
+type T string
 
-func OpenFile(fileName string) error {
-	return fmt.Errorf("%s not found", fileName)
-}
-
-var CreateError = errors.New("system create error")
-
-func Create() error {
-	return CreateError
-}
-
-type CreateFileError struct {
-	message string
-}
-
-// error接口 Error方法, 记得要使用值接收器，才是完全实现接口
-func (e CreateFileError) Error() string {
-	return fmt.Sprintf("%s create error", e.message)
-}
-
-func CreateFile(fn string) error {
-	return &CreateFileError{message: fn}
+func (t *T) hello(t2 T) {
+	fmt.Println("hello", t, t2)
 }
