@@ -119,5 +119,105 @@ func Test_Is_Impl(t *testing.T) {
 }
 
 func Test_Value(t *testing.T) {
+	up := &User{
+		Name: "admin",
+		age:  12,
+	}
+	upValue := reflect.ValueOf(up)
+	fmt.Println(upValue)
+
+	uValue := reflect.ValueOf(*up)
+	fmt.Println(uValue)
+
+	// equal : reflect.ValueOf(*up)
+	uValue2 := upValue.Elem()
+	fmt.Println(uValue2)
+	// equal : reflect.ValueOf(up)
+	upValue2 := uValue2.Addr()
+	fmt.Println(upValue2)
+	// value -> Type
+
+	t2 := upValue.Type()
+	fmt.Println(t2)
+
+	// get value
+	fmt.Println(upValue2.Interface())
+	getValue := (upValue2.Interface()).(*User)
+	fmt.Println(getValue.GetName())
+
+	// empty value
+	var nilUser *User = nil
+	v1 := reflect.ValueOf(nilUser)
+	fmt.Printf("v1.IsValid() : %v \r\n", v1.IsValid())
+	if v1.IsValid() {
+		fmt.Printf("v1.IsNil() : %v \r\n", v1.IsNil())
+	}
+	var zeroUser User
+	v2 := reflect.ValueOf(zeroUser)
+	fmt.Printf("v2.IsValid() : %v \r\n", v2.IsValid())
+	if v2.IsValid() {
+		fmt.Printf("v2.IsZero() : %v \r\n", v2.IsZero())
+	}
+
+	// interface
+	var i interface{}
+	vi := reflect.ValueOf(i)
+	fmt.Printf("vi.IsValid() : %v \r\n", vi.IsValid())
+
+}
+
+func Test_Set_Value(t *testing.T) {
+	up := &User{
+		Name: "admin",
+		age:  12,
+	}
+	upValue := reflect.ValueOf(up)
+	// Only pointers can be modified, only public fields can be modified
+	// get Elem to set value
+	user := upValue.Elem()
+	user.FieldByName("Name").SetString("ge ge")
+	// Usually we don't pay attention to the field name when reflecting, so we can judge whether it can be assigned by Can Set
+	fmt.Println(user.FieldByName("age").CanSet())
+	fmt.Println(upValue)
+
+}
+
+func Test_Set_Slice_Value(t *testing.T) {
+	up1 := &User{
+		Name: "admin1",
+		age:  12,
+	}
+	up2 := &User{
+		Name: "admin2",
+		age:  12,
+	}
+	users := make([]*User, 2, 10)
+	users[0] = up1
+	users[1] = up2
+	sv := reflect.ValueOf(&users)
+	elem := sv.Elem()
+
+	elem.Index(0).Elem().FieldByName("Name").SetString("new new admin")
+
+	fmt.Println(users[0])
+	fmt.Println(elem.Cap())
+	fmt.Println(len(users))
+
+	elem.SetCap(5)
+	fmt.Println(cap(users))
+}
+
+// MakeFunc MakeMap MakeSlice MakeChan
+func Test_Make(t *testing.T) {
+	user := &User{
+		Name: "admin",
+	}
+	var f func(user2 *User) string
+	ut := reflect.TypeOf(f)
+	makeFunc := reflect.MakeFunc(ut, func(args []reflect.Value) (results []reflect.Value) {
+		name := args[0].Elem().FieldByName("Name").String()
+		return []reflect.Value{reflect.ValueOf("hello !" + name)}
+	})
+	fmt.Println(makeFunc.Call([]reflect.Value{reflect.ValueOf(user)})[0].String())
 
 }
